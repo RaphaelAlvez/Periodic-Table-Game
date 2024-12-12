@@ -1,0 +1,310 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Periodic Table Game</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            margin: 20px;
+        }
+        .periodic-table {
+            display: grid;
+            grid-template-columns: repeat(18, 50px);
+            gap: 5px;
+            justify-content: center;
+        }
+        .cell {
+            width: 50px;
+            height: 50px;
+            border: 1px solid #ccc;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background-color: #f9f9f9;
+            cursor: pointer;
+            position: relative;
+        }
+        .cell input {
+            width: 100%;
+            height: 100%;
+            border: none;
+            text-align: center;
+            font-size: 14px;
+            outline: none;
+            background: transparent;
+            cursor: text;
+            text-transform: capitalize;
+        }
+        .cell .score {
+            position: absolute;
+            bottom: 2px;
+            right: 2px;
+            font-size: 10px;
+            color: #999;
+            pointer-events: none;
+        }
+        .cell.correct {
+            background-color: #d4edda;
+            pointer-events: none;
+        }
+        .cell.incorrect {
+            background-color: #f8d7da;
+        }
+    </style>
+</head>
+<body>
+    <h1>Fill the Periodic Table</h1>
+    <p>Fill in the blanks. Points are based by adjacent tiles.</p>
+    <p>-5 by mistake!</p>
+    <div class="periodic-table" id="periodicTable"></div>
+    <h2>Total Score: <span id="totalScore">0</span></h2>
+
+    <script>
+        const elements = [
+            { name: "H", position: [0, 0] },
+            { name: "He", position: [0, 17] },
+            { name: "Li", position: [1, 0] },
+            { name: "Be", position: [1, 1] },
+            { name: "B", position: [1, 12] },
+            { name: "C", position: [1, 13] },
+            { name: "N", position: [1, 14] },
+            { name: "O", position: [1, 15] },
+            { name: "F", position: [1, 16] },
+            { name: "Ne", position: [1, 17] },
+            { name: "Na", position: [2, 0] },
+            { name: "Mg", position: [2, 1] },
+            { name: "Al", position: [2, 12] },
+            { name: "Si", position: [2, 13] },
+            { name: "P", position: [2, 14] },
+            { name: "S", position: [2, 15] },
+            { name: "Cl", position: [2, 16] },
+            { name: "Ar", position: [2, 17] },
+            { name: "K", position: [3, 0] },
+            { name: "Ca", position: [3, 1] },
+            { name: "Sc", position: [3, 2] },
+            { name: "Ti", position: [3, 3] },
+            { name: "V", position: [3, 4] },
+            { name: "Cr", position: [3, 5] },
+            { name: "Mn", position: [3, 6] },
+            { name: "Fe", position: [3, 7] },
+            { name: "Co", position: [3, 8] },
+            { name: "Ni", position: [3, 9] },
+            { name: "Cu", position: [3, 10] },
+            { name: "Zn", position: [3, 11] },
+            { name: "Ga", position: [3, 12] },
+            { name: "Ge", position: [3, 13] },
+            { name: "As", position: [3, 14] },
+            { name: "Se", position: [3, 15] },
+            { name: "Br", position: [3, 16] },
+            { name: "Kr", position: [3, 17] },
+            { name: "Rb", position: [4, 0] },
+            { name: "Sr", position: [4, 1] },
+            { name: "Y", position: [4, 2] },
+            { name: "Zr", position: [4, 3] },
+            { name: "Nb", position: [4, 4] },
+            { name: "Mo", position: [4, 5] },
+            { name: "Tc", position: [4, 6] },
+            { name: "Ru", position: [4, 7] },
+            { name: "Rh", position: [4, 8] },
+            { name: "Pd", position: [4, 9] },
+            { name: "Ag", position: [4, 10] },
+            { name: "Cd", position: [4, 11] },
+            { name: "In", position: [4, 12] },
+            { name: "Sn", position: [4, 13] },
+            { name: "Sb", position: [4, 14] },
+            { name: "Te", position: [4, 15] },
+            { name: "I", position: [4, 16] },
+            { name: "Xe", position: [4, 17] },
+            { name: "Cs", position: [5, 0] },
+            { name: "Ba", position: [5, 1] },
+            { name: "La", position: [5, 2] },
+            { name: "Hf", position: [5, 3] },
+            { name: "Ta", position: [5, 4] },
+            { name: "W", position: [5, 5] },
+            { name: "Re", position: [5, 6] },
+            { name: "Os", position: [5, 7] },
+            { name: "Ir", position: [5, 8] },
+            { name: "Pt", position: [5, 9] },
+            { name: "Au", position: [5, 10] },
+            { name: "Hg", position: [5, 11] },
+            { name: "Tl", position: [5, 12] },
+            { name: "Pb", position: [5, 13] },
+            { name: "Bi", position: [5, 14] },
+            { name: "Po", position: [5, 15] },
+            { name: "At", position: [5, 16] },
+            { name: "Rn", position: [5, 17] },
+            { name: "Fr", position: [6, 0] },
+            { name: "Ra", position: [6, 1] },
+            { name: "Ac", position: [6, 2] },
+            { name: "Rf", position: [6, 3] },
+            { name: "Db", position: [6, 4] },
+            { name: "Sg", position: [6, 5] },
+            { name: "Bh", position: [6, 6] },
+            { name: "Hs", position: [6, 7] },
+            { name: "Mt", position: [6, 8] },
+            { name: "Ds", position: [6, 9] },
+            { name: "Rg", position: [6, 10] },
+            { name: "Cn", position: [6, 11] },
+            { name: "Nh", position: [6, 12] },
+            { name: "Fl", position: [6, 13] },
+            { name: "Mc", position: [6, 14] },
+            { name: "Lv", position: [6, 15] },
+            { name: "Ts", position: [6, 16] },
+            { name: "Og", position: [6, 17] }
+        ];
+
+        const table = document.getElementById("periodicTable");
+        const totalScoreElement = document.getElementById("totalScore");
+        const checkResultsButton = document.getElementById("checkResults");
+
+        const rows = 7;
+        const cols = 18;
+        let totalScore = 0;
+
+        // Initialize the periodic table
+        const tableData = Array.from({ length: rows }, () => 
+            Array(cols).fill(null).map(() => ({ score: 100, isCorrect: false, value: "" }))
+        );
+
+        // Render the table
+        for (let r = 0; r < rows; r++) {
+            for (let c = 0; c < cols; c++) {
+                const cell = document.createElement("div");
+                cell.className = "cell";
+
+                const input = document.createElement("input");
+                const scoreDisplay = document.createElement("span");
+                scoreDisplay.className = "score";
+                //tableData[r][c].score = getRandomNumber(r,c)
+                scoreDisplay.textContent = tableData[r][c].score;
+
+                input.addEventListener("blur", () => handleInput(r, c, input.value, cell));
+                cell.appendChild(input);
+                cell.appendChild(scoreDisplay);
+
+                table.appendChild(cell);
+            }
+        }
+
+        function handleInput(row, col, value, cell) {
+            const cellData = tableData[row][col];
+            cellData.value = value.trim().charAt(0).toUpperCase() + value.trim().slice(1).toLowerCase();
+            const isCorrect = elements.some(e => e.position[0] === row && e.position[1] === col && e.name === cellData.value);
+            if (cell.previousAnswer!=cellData.value){
+                if (isCorrect) {
+                    cellData.isCorrect = true;
+                    cell.classList.add("correct");
+                    cell.classList.remove("incorrect");
+                    updateScores(row, col);
+                } else if (value) {
+                    cellData.score -= 5;
+                    if (cellData.score<0) {
+                        cellData.score = 0;
+                    }
+                    cell.classList.add("incorrect");
+                    cell.classList.remove("correct");
+                    cell.previousAnswer = cellData.value
+                } else {
+                    cellData.isCorrect = false;
+                    cell.classList.remove("correct", "incorrect");
+                }
+                renderScores();}
+        }
+
+        function updateScores(row, col) {
+            const adjacentCells = [
+                [row - 1, col], [row + 1, col],
+                [row, col - 1], [row, col + 1]
+            ];
+
+            adjacentCells.forEach(([r, c]) => {
+                if (r >= 0 && r < rows && c >= 0 && c < cols) {
+                    const adjCell = tableData[r][c];
+                    if (!adjCell.isCorrect) {
+                        //adjCell.score = Math.round(adjCell.score*0.9);
+                        adjCell.score -= 10
+                    }
+                }
+            });
+
+            for (let r = 0; r < rows; r++) {
+                if (r !== row) {
+                    const sameColCell = tableData[r][col];
+                    if (!sameColCell.isCorrect) {
+                        sameColCell.score -= 5;
+                    }
+                    if (sameColCell.score<0) {
+                        sameColCell.score = 0;
+                    }
+                }
+            }    
+        }
+
+        function renderScores() {
+            totalScore = 0;
+            const cells = document.querySelectorAll(".cell");
+            cells.forEach((cell, index) => {
+                const row = Math.floor(index / cols);
+                const col = index % cols;
+                const scoreSpan = cell.querySelector(".score");
+                if (scoreSpan) {
+                    const cellData = tableData[row][col];
+                    if (cellData.isCorrect) {
+                        totalScore += cellData.score;
+                    }
+                    scoreSpan.textContent = cellData.score;
+                }
+            });
+            totalScoreElement.textContent = totalScore;
+        }
+
+        function checkResults() {
+            let correctCount = 0;
+            let incorrectCount = 0;
+
+            for (const element of elements) {
+                const { name, position } = element;
+                const [r, c] = position;
+                const userValue = tableData[r][c].value;
+
+                if (userValue.toUpperCase() === name.toUpperCase()) {
+                    correctCount++;
+                } else {
+                    incorrectCount++;
+                }
+            }
+
+            alert(`Correct: ${correctCount}, Incorrect: ${incorrectCount}`);
+            renderScores();
+        }
+
+        function getRandomNumber(x, y) {
+        // Get the current date (day of the year)
+        const today = new Date();
+        const dayOfYear = Math.floor((today - new Date(today.getFullYear(), 0, 0)) / (1000 * 60 * 60 * 24));
+
+        // Combine the day of the year with the x, y coordinates
+        const seed = dayOfYear + x + y;
+
+        // Simple PRNG (Pseudo-Random Number Generator) based on the seed
+        const random = (seed) => {
+            seed = (seed ^ 61) ^ (seed >> 16);
+            seed += seed << 3;
+            seed ^= seed >> 4;
+            seed *= 0x27d4eb2d;
+            seed ^= seed >> 15;
+            return Math.abs(seed % 101);  // Normalize to a number between 0 and 100
+        };
+
+        // Use the random function to get a value between 0 and 100, then scale it to 50-150
+        const randomValue = random(seed);
+        return 50 + (randomValue * (150 - 50)) / 100;
+        }
+
+        checkResultsButton.addEventListener("click", checkResults);
+    </script>
+</body>
+</html>
